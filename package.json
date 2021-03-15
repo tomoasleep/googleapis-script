@@ -1,5 +1,5 @@
 {
-  "name": "typescript-action",
+  "name": "googleapis-script",
   "version": "0.0.0",
   "private": true,
   "description": "TypeScript template action",
@@ -22,7 +22,7 @@
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "Tomoya Chiba <tomo.asleep@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.6"
