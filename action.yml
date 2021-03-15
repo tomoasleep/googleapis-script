@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Google APIs Script'
+description: 'Run simplet scripts using the Google APIs client'
 inputs:
-  serviceAccountCredentialsJson:
+  script:
+    required: true
+    description: 'The script to run'
+  service-account-credentials-json:
     required: false
     description: 'JSON content of Service Account Credentials'
-  scopesJson:
+  scopes-json:
     required: false
     description: 'API scopes in JSON represetion '
 runs:
