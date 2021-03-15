@@ -1,16 +1,26 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import {google} from 'googleapis'
+import {callAsyncFunction} from './async-function'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+    const serviceAccountCredentialsJson: string = core.getInput(
+      'service-account-credentials-json'
+    )
+    const serviceAccountCredentials = JSON.parse(serviceAccountCredentialsJson)
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const scopesJson: string = core.getInput('scopes-json')
+    const scopes: string[] = JSON.parse(scopesJson)
 
-    core.setOutput('time', new Date().toTimeString())
+    const auth = new google.auth.GoogleAuth({
+      credentials: serviceAccountCredentials,
+      scopes
+    })
+    google.options({auth})
+
+    const script = core.getInput('script', {required: true})
+
+    await callAsyncFunction({require, google, core}, script)
   } catch (error) {
     core.setFailed(error.message)
   }

@@ -25,7 +25,8 @@
   "author": "Tomoya Chiba <tomo.asleep@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.6"
+    "@actions/core": "^1.2.6",
+    "googleapis": "^67.1.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
