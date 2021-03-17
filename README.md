@@ -1,105 +1,65 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# googleapis-script
 
-# Create a JavaScript Action using TypeScript
+This action makes it easy to quickly write a script in your workflow that uses Google APIs.
+This action is inspired by [actions/github-script](https://github.com/actions/github-script).
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+:warning: This action is still a bit of an experiment. The API and functionality may change.
+## Usage
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+In order to use this action, a `script` input is provided. The value of that input should be the body of an asynchronous function call. The following arguments will be provided:
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+* `google` A pre-autenticated [googleapis/google-api-nodejs-client](https://github.com/googleapis/google-api-nodejs-client) client.
+* `core` A reference to the [@actions/io](https://github.com/actions/toolkit/tree/main/packages/core) package.
 
-## Create an action from this template
+See [googleapis/google-api-nodejs-client](https://github.com/googleapis/google-api-nodejs-client) for the API client documentation.
 
-Click the `Use this Template` and provide the new repo details for your action
+### Authentication
 
-## Code in Main
+In order to authenticate Google APIs these inputs are provided:
 
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
+* `scopes-json`: A JSON array of Google API resources and operations to be authenticated.
+  * :memo: See https://developers.google.com/identity/protocols/oauth2/scopes for the available scopes.
+* credential inputs (For now, Only service account credentials is supported.):
+  * `service-account-credentials-json`: A JSON keyfile content of a service account.
+    * :memo: To generate a service account and its key. See: https://developers.google.com/identity/protocols/oauth2/service-account?hl=ja#creatinganaccount.
 
-Install the dependencies  
-```bash
-$ npm install
-```
+Before using Google APIs, you must be sure the API to use has been enabled.
+For more details, See: https://github.com/googleapis/google-auth-library-nodejs#application-default-credentials.
 
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
+### Example
 
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
+#### Create a document from a template document
 
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml contains defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+This example creates a new document and merge contents to it like the practice in https://developers.google.com/docs/api/how-tos/merge.
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+- uses: tomoasleep/googleapis-script@v1-alpha
+  with:
+    service-account-credentials-json: ${{ secrets.GOOGLE_APIS_CREDENTIAL_JSON }}
+    scopes-json: '["https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/drive.file"]'
+    script: |
+      // Create a new document from a template document.
+      const newDoc = await google.drive("v3").files.copy({ fileId: "<TEMPLATE DOCUMENT ID>", supportsAllDrives: true })
+
+      // Replace placeholders in the created document.
+      const requests = [
+        {
+          replaceAllText: {
+            containsText: { text: '{{date}}', matchCase: true },
+            replaceText: new Date().toString(),
+          },
+        },
+      ]
+      const doc = await google.docs("v1").documents.batchUpdate({ documentId: newDoc.data.id, resource: { requests } })
+
+      console.log(doc.data.documentId)
+      core.setOutput("new-document-id", doc.data.documentId)
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
 
-## Usage:
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+
+## Development
+
+This action is generated from [actions/typescript-action](https://github.com/actions/typescript-action).
+See [development.md](./development.md) for details.
